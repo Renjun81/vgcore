@@ -45,8 +45,8 @@ GiCoreViewImpl::GiCoreViewImpl(GiCoreView* owner, bool useCmds)
     backDoc = drawing->getBackDoc();
     addPlaying(drawing);
     
-    play.playing = GiPlaying::create(NULL, GiPlaying::kPlayingTag, useCmds);
-    addPlaying(play.playing);
+    playing = GiPlaying::create(NULL, GiPlaying::kPlayingTag, useCmds);
+    addPlaying(playing);
     
     _motion.view = this;
     _motion.gestureType = 0;
@@ -103,6 +103,11 @@ void GiCoreViewImpl::resetOptions()
     setOptionBool("zoomShapeEnabled", true);
     setOptionBool("notClickSelectInDrawCmd", false);
     setOptionInt("selectDrawFlags", 0xFF);
+    
+    // added by kyg on 2015-09
+    setOptionFloat("hitTestTol", 5.f);
+    setOptionFloat("hitHandleTestTol", 8.f);
+    setOptionFloat("gridSize", 10.f);
 }
 
 void GiCoreViewImpl::calcContextButtonPosition(mgvector<float>& pos, int n, const Box2d& box)
@@ -1814,4 +1819,93 @@ void GiCoreView::traverseOptions(MgOptionCallback* c)
                 break;
         }
     }
+}
+
+
+
+
+
+bool GiCoreView::zoomToModelCenter(float x, float y, float w, float h, float margin)
+{
+    Box2d rect(Box2d(x - w/2, y - h/2, x + w/2, y + h/2) * impl->xform()->modelToWorld());
+    RECT_2D to;
+    
+    Box2d(impl->xform()->getWndRect()).deflate(margin).get(to);
+    bool ret = impl->xform()->zoomTo(rect, &to);
+    
+    if (ret) {
+        impl->regenAll(false);
+    }
+    return ret;
+}
+
+
+bool GiCoreView::zoomScale(float viewScale, float xc, float yc, bool adjust)
+{
+    Point2d ptCenter(xc, yc);
+    bool res = impl->xform()->zoomScale(viewScale, (xc==-1&&yc==-1)?&ptCenter:(Point2d*)0, adjust);
+    if (res) {
+        impl->regenAll(false);
+    }
+    return res;
+}
+
+
+float GiCoreView::getOrgOffsetAndZoom(GiView* view, float& xorg, float&yorg)
+{
+    float ret = 1;
+    GcBaseView* aview = impl->_gcdoc->findView(view);
+    if (aview)
+    {
+        Point2d ptCenter;
+        ret = aview->xform()->getZoomValue(ptCenter);
+        xorg = ptCenter.x * aview->xform()->getWorldToDisplayX();
+        yorg = ptCenter.y * aview->xform()->getWorldToDisplayY();
+    }
+    return ret;
+}
+
+void GiCoreView::setBackgroundImage(GiView *view, const char* bgImage, float width, float height)
+{
+    setOptionString("backgroundImage", bgImage);
+    setOptionFloat("backgroundWidth", width);
+    setOptionFloat("backgroundHeight", height);
+    
+    width = impl->xform()->displayToModel(width);
+    height = impl->xform()->displayToModel(height);
+    impl->doc()->setBackgroundSize(width, height);
+}
+
+void GiCoreView::setViewLimits(GiView* view, float width, float height)
+{
+    setViewLimits(view, 0.f, 0.f, width, height);
+}
+
+void GiCoreView::setViewLimits(GiView* view, float xorg, float yorg, float width, float height)
+{
+    GcBaseView* aview = impl->_gcdoc->findView(view);
+    if (aview) {
+        aview->xform()->setWorldLimits(Box2d(Point2d(xorg, yorg), width, height));
+    }
+}
+
+
+void GiCoreView::setShapeInfo(const char*key, const char* value)
+{
+    const MgShape* shape = NULL;
+    impl->cmds()->getSelection(impl, 1, &shape);
+    if ( shape )
+    {
+        ((MgShape*)shape)->shape()->extras().setOptionString(key, value);
+    }
+}
+
+const char* GiCoreView::getShapeInfo(const char*key)
+{
+    const MgShape* shape = NULL;
+    impl->cmds()->getSelection(impl, 1, &shape);
+    if ( shape )
+        return ((MgShape*)shape)->shape()->extras().getOptionString(key);
+    else
+        return NULL;
 }

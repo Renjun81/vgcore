@@ -3,6 +3,117 @@
 
 #include "mgbasesp.h"
 #include "mgshape_.h"
+#include "mgjsonstorage.h"
+
+#include <sstream>
+
+
+
+bool OptionMap::getOptionBool(const char* name, bool defValue)
+{
+    return !!getOptionInt(name, defValue ? 1 : 0);
+}
+
+void OptionMap::setOptionBool(const char* name, bool value)
+{
+    if (!value && strchr(name, '_')) {
+        options.erase(name);
+    } else {
+        options[std::string(name)] = std::string(value ? "1" : "0");
+    }
+}
+
+
+int OptionMap::getOptionInt(const char* name, int defValue)
+{
+    int ret = defValue;
+    STRING_MAP::const_iterator kv = options.find(std::string(name));
+    if (kv != options.end() && MgJsonStorage::parseInt(kv->second.c_str(), defValue))
+    {
+        ret = defValue;
+    }
+    
+    return ret;
+}
+
+void OptionMap::setOptionInt(const char* name, int value)
+{
+    std::stringstream ss;
+    ss << value;
+    options[std::string(name)] = ss.str();
+}
+
+
+float OptionMap::getOptionFloat(const char* name, float defValue)
+{
+    float ret = defValue;
+    STRING_MAP::const_iterator kv = options.find(std::string(name));
+    if (kv != options.end() && MgJsonStorage::parseFloat(kv->second.c_str(), defValue))
+    {
+        ret = defValue;
+    }
+    
+    return ret;
+}
+
+void OptionMap::setOptionFloat(const char* name, float value)
+{
+    std::stringstream ss;
+    ss << value;
+    options[std::string(name)] = ss.str();
+}
+
+
+const char* OptionMap::getOptionString(const char* name)
+{
+    STRING_MAP::const_iterator kv = options.find(std::string(name));
+    return kv != options.end() ? kv->second.c_str() : "";
+}
+
+void OptionMap::setOptionString(const char* name, const char* text)
+{
+    options[std::string(name)] = text ? text : "";
+}
+
+
+void OptionMap::save(const char* name, MgStorage *s)
+{
+    std::string strKeys;
+    for (STRING_MAP::const_iterator kv = options.begin() ; kv != options.end(); ++kv)
+    {
+        if ( strKeys.length() == 0 )
+            strKeys = kv->first;
+        else
+            strKeys = strKeys + "," + kv->first;
+        
+        s->writeString(kv->first.c_str(), kv->second.c_str() );
+    }
+    s->writeString("KEY_COLLECTION", strKeys.c_str());
+}
+
+void OptionMap::load(const char* name, MgStorage *s)
+{
+    std::string strKeys;
+    int len = s->readString("KEY_COLLECTION", NULL, 0);
+    strKeys.resize(len, 0);
+    s->readString("KEY_COLLECTION", const_cast<char*>(strKeys.c_str()), (int)strKeys.size());
+    
+    char buf[1024];
+    const char *tokens = ",";
+    const char * pch;
+    
+    pch = strtok ((char*)(strKeys.c_str()), tokens);
+    while (pch != NULL)
+    {
+        s->readString(pch, buf, 1020);
+        options[pch] = buf;
+        pch = strtok (NULL, tokens);
+    }
+}
+
+
+
+
 
 MgBaseShape::MgBaseShape() : _flags(0), _changeCount(0) {
 }
@@ -63,6 +174,8 @@ void MgBaseShape::_copy(const MgBaseShape& src)
     _extent = src._extent;
     _flags = src._flags;
     _changeCount = src._changeCount;
+    
+    _options = src._options;
 }
 
 bool MgBaseShape::_equals(const MgBaseShape& src) const
@@ -164,12 +277,14 @@ bool MgBaseShape::_hitTestBox(const Box2d& rect) const
 bool MgBaseShape::_save(MgStorage* s) const
 {
     s->writeUInt("flags", _flags);
+    extrasc()->save("option", s);
     return true;
 }
 
 bool MgBaseShape::_load(MgShapeFactory* factory, MgStorage* s)
 {
     _flags = s->readInt("flags", _flags);
+    extrasc()->load("option", s);
     return true;
 }
 

@@ -182,6 +182,7 @@ bool MgCmdManagerImpl::setCommand(const MgMotion* sender,
         MgBaseShape::minTol().setEqualPoint(sender->view->xform()->displayToModel(1.f, true));
     }
     if (oldname != _cmdname) {
+        LOGD("command changed from %s to %s", oldname.c_str(), _cmdname.c_str());
         sender->view->commandChanged();
     }
     sender->view->redraw();

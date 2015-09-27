@@ -483,7 +483,9 @@ const MgShape* MgShapes::hitTest(const Box2d& limits, MgHitResult& res,
 {
     const MgShape* retshape = (const MgShape*)0;
     
-    res.dist = limits.width() > 1e4f ? limits.width() : limits.width() * 20.f;
+    // modified by kyg on 2015-09
+    // make snap 
+    res.dist = limits.width();// limits.width() > 1e4f ? limits.width() : limits.width() * 20.f;
     for (I::citerator it = im->shapes.begin(); it != im->shapes.end(); ++it) {
         const MgBaseShape* shape = (*it)->shapec();
         Box2d extent(shape->getExtent());

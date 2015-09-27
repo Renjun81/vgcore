@@ -1,4 +1,4 @@
-﻿//! \file gigraph.h
+//! \file gigraph.h
 //! \brief 定义图形系统类 GiGraphics
 // Copyright (c) 2004-2015, https://github.com/rhcad/vgcore, BSD License
 
@@ -368,6 +368,12 @@ public:
     //! 显示路径对象
     bool drawPath(const GiContext* ctx, const MgPath& path, bool fill, bool modelUnit = true);
     
+    //! added by kyg on 2015-09
+    bool drawImage(const char* name, const Point2d& center, float width, float height, float angle = 0, bool modelUnit = true);
+
+    float calcTextWidth(const char* text, float h);
+    ////////////////////////////////////////////////////////
+
     //! 在给定中心位置显示特殊符号
     /*!
         \param pnt 符号中心位置

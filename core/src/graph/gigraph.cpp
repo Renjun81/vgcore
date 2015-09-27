@@ -1,4 +1,4 @@
-﻿// gigraph.cpp: 实现图形系统类 GiGraphics
+// gigraph.cpp: 实现图形系统类 GiGraphics
 // Copyright (c) 2004-2015, https://github.com/rhcad/vgcore, BSD License
 
 #include "gigraph_.h"
@@ -1087,7 +1087,10 @@ static const struct {
     { false, 0,     "M3 1.2L0 0 3 -1.2" },
     { false, 0,     "M0 1.5L0 -1.5" },
     { false, 0,     "M1.5 -1.5L-1.5 1.5" },
-    { true, 0.8f,   "M0.8 0A0.8 0.8 0 0 0 -0.8 0A0.8 0.8 0 0 0 0.8 0Z" },
+    //{ true, 0.8f,   "M0.8 0A0.8 0.8 0 0 0 -0.8 0A0.8 0.8 0 0 0 0.8 0Z" },
+    // modified by kyg on 2015-09
+    // make arrow slight larger
+    { true, 0.6f,   "M1.2 0A1.2 1.2 0 0 0 -1.2 0A1.2 1.2 0 0 0 1.2 0Z" },
     { false, 0.8f,  "M0.8 0A0.8 0.8 0 0 0 -0.8 0A0.8 0.8 0 0 0 0.8 0Z" },
 };
 
@@ -1448,4 +1451,30 @@ bool GiGraphics::beginShape(int type, int sid, int version, float x, float y, fl
 void GiGraphics::endShape(int type, int sid, float x, float y)
 {
     m_impl->canvas->endShape(type, sid, x, y);
+}
+
+
+
+bool GiGraphics::drawImage(const char* name, const Point2d& center, float width, float height, float angle, bool modelUnit)
+{
+    const Box2d extent (center, width, height);                         // 模型坐标范围
+    if (!DRAW_RECT(m_impl, modelUnit).isIntersect(extent))      // 全部在显示区域外
+        return false;
+    
+    Box2d rect(extent * S2D(xf(), modelUnit));
+    return rawImage(name, rect.center().x, rect.center().y, rect.width(), rect.height(), angle);
+}
+
+float GiGraphics::calcTextWidth(const char* text, float h)
+{
+    float ret = 0;
+    
+    if (m_impl->canvas && text && h > 0 )
+    {
+        float w2d = xf().getWorldToDisplayY(h < 0);
+        h = fabsf(h) * w2d;
+        ret = m_impl->canvas->calcTextWidth(text, h) / w2d;
+    }
+    
+    return ret;
 }

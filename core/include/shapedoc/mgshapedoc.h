@@ -101,7 +101,10 @@ public:
 
     //! 设置页面范围的世界坐标
     void setPageRectW(const Box2d& rectW, float viewScale, bool resetInitial = false);
-    
+
+    //! added by kyg on 2015-09
+    void setBackgroundSize(float width, float height);
+
     //! 放缩到文档初始状态
     bool zoomToInitial(GiTransform* xform);
 

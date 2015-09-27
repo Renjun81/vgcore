@@ -20,6 +20,10 @@ struct MgShapeDoc::Impl {
     float       viewScale;
     volatile long   refcount;
     bool        readOnly;
+    
+    // added by kyg on 2015-09
+    //use for including background image size into document extend, measured by display metrics
+    Vector2d    backgroundSize;
 };
 
 //static volatile long _n = 0;
@@ -78,6 +82,9 @@ void MgShapeDoc::copy(const MgObject& src)
         im->rectW = doc.im->rectW;
         im->viewScale = doc.im->viewScale;
         im->context = doc.im->context;
+        
+        // added by kyg on 2015-09
+        im->backgroundSize = doc.im->backgroundSize;
     }
 }
 
@@ -180,6 +187,11 @@ void MgShapeDoc::clearCachedData()
     }
 }
 
+void MgShapeDoc::setBackgroundSize(float width, float height)
+{
+    im->backgroundSize.set(width, height);
+}
+
 Box2d MgShapeDoc::getExtent() const
 {
     Box2d rect;
@@ -189,6 +201,14 @@ Box2d MgShapeDoc::getExtent() const
             rect.unionWith(im->layers[i]->getExtent());
         }
     }
+    
+    // added by kyg on 2015-09
+    if ( im->backgroundSize.length() > 0 )
+    {
+        Box2d bgRect(Point2d::kOrigin(), im->backgroundSize.x, im->backgroundSize.y);
+        rect.unionWith(bgRect);
+    }
+    ///////////////////////////////////////////////
 
     return rect;
 }
@@ -373,7 +393,8 @@ bool MgShapeDoc::saveAll(MgStorage* s, const GiTransform* xform)
 
 bool MgShapeDoc::loadAll(MgShapeFactory* factory, MgStorage* s, GiTransform* xform)
 {
-    im->rectW.set(0.f, 0.f, 1024.f, 768.f);
+    //im->rectW.set(0.f, 0.f, 1024.f, 768.f);
+    im->rectW = xform->getWndRectW();
     im->viewScale = 1.f;
     
     bool ret = load(factory, s, false);

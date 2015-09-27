@@ -155,7 +155,11 @@ bool MgCmdSelect::initializeWithSelection(const MgMotion* sender, MgStorage* s, 
     }
     
     m_canRotateHandle = !!sender->view->getOptionBool("canRotateHandle", true);
-    m_editMode = (m_editMode || m_handleIndex > 0) && !m_rotateHandle;
+    // modified by kyg on 2015-09
+    // disable switching edit mode, make always editable.
+    //m_editMode = (m_editMode || m_handleIndex > 0) && !m_rotateHandle;
+    m_editMode = true;
+    
     sender->view->getCmdSubject()->onEnterSelectCommand(sender);
     
     const MgShape* sp = m_id ? NULL : getShape(sender->view->getNewShapeID(), sender);
@@ -438,15 +442,14 @@ bool MgCmdSelect::canSelect(const MgShape* shape, const MgMotion* sender)
     return d <= limits.width() / 2;
 }
 
-int MgCmdSelect::hitTestHandles(const MgShape* shape, const Point2d& pointM,
-                                const MgMotion* sender, float tolmm)
+int MgCmdSelect::hitTestHandles(const MgShape* shape, const Point2d& pointM, const MgMotion* sender)
 {
     if (!shape || shape->shapec()->getFlag(kMgFixedSize)) {
         return 0;
     }
     
     int handleIndex = 0;
-    float minDist = sender->displayMmToModel(tolmm);
+    float minDist = sender->displayMmToModel("hitHandleTestTol", 10.f); //sender->displayMmToModel(tolmm);
     float nearDist = m_hit.nearpt.distanceTo(pointM);
     int n = shape->getHandleCount();
     
@@ -623,6 +626,18 @@ bool MgCmdSelect::touchBegan(const MgMotion* sender)
         const MgShape* newshape = hitTestAll(sender, res);
         const MgShape* oldshape = getSelectedShape(sender);
         
+        // added by kyg on 2015-09
+        // clear selection to prevent draging without hitting shape once selected
+        if ( !newshape && m_selIds.size() == 1 )
+        {
+            m_hit = res;
+            m_id = 0;
+            m_selIds.clear();
+            m_handleIndex = 0;
+            m_rotateHandle = 0;
+        }
+        ////////////////////////////////////////////////
+
         if (newshape && newshape->getID() != m_id
             && !sender->view->shapes()->getOwner()->isKindOf(kMgShapeComposite)
             && (!oldshape || !canSelect(oldshape, sender))) {
@@ -668,7 +683,7 @@ bool MgCmdSelect::touchBegan(const MgMotion* sender)
     }
     m_boxHandle = 99;
     
-    int tmpindex = hitTestHandles(shape, sender->startPtM, sender, 5);
+    int tmpindex = hitTestHandles(shape, sender->startPtM, sender);
     if (tmpindex < 1) {
         if (sender->startPtM.distanceTo(m_hit.nearpt) < sender->displayMmToModel(3.f)) {
             m_ptStart = m_hit.nearpt;
@@ -965,7 +980,23 @@ bool MgCmdSelect::touchMoved(const MgMotion* sender)
 
                 shape->offset(pointM - m_ptStart, segment); // 先从起始点拖到当前点
                 if (t > 1 || m_clones.size() == 1) {        // 不是第二遍循环
-                    Vector2d snapvec(snapPoint(sender, m_clones[i]) - pointM);
+                    // added by kyg on 2015-09
+                    // snap to grid point when dragging
+                    Point2d snapPt = snapPoint(sender, m_clones[i]);
+                    if ( sender->view->getSnap()->getSnappedType() == kMgSnapNone &&
+                        sender->view->getOptionBool("snapBgGrid", false) )
+                    {
+                        Vector2d vec2(pointM - m_ptStart);
+                        float gridSize = sender->view->getOptionFloat("gridSize", 10.f);
+                        vec2.x = mgRound(vec2.x/gridSize)*gridSize;
+                        vec2.y = mgRound(vec2.y/gridSize)*gridSize;
+                        snapPt = m_ptStart;
+                        snapPt.offset(vec2);
+                    }
+                    Vector2d snapvec(snapPt - pointM);
+                    //Vector2d snapvec(snapPoint(sender, m_clones[i]) - pointM);
+                    ////////////////////////////////////////////////////
+                    
                     shape->offset(snapvec, segment);        // 再从当前点拖到捕捉点
                     if (t > 1) {                            // 是拖动多个图形的第一遍
                         if (!snapvec.isZeroVector() && minsnap.length() > snapvec.length()) {

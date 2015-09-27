@@ -61,6 +61,17 @@ template<class _T> inline bool mgIsZero(_T v)
     return fabs(v) < _MGZERO;
 }
 
+/* added by kyg on 2015-09 
+   0 : 0
+   1 : > 0
+   -1: < 0
+ */
+template<class _T> inline
+const _T mgSign(const _T v)
+{
+    return (v > 0) ? 1 : ( (v < 0) ? -1 : 0 );
+}
+
 //! 判断两个浮点数是否相等
 /*!
     \ingroup GEOMAPI

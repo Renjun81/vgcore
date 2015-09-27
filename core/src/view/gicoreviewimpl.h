@@ -70,6 +70,7 @@ class GiCoreViewImpl : public GiCoreViewData, public MgShapeFactory
 public:
     static float    _factor;
     GcShapeDoc*     _gcdoc;
+    MgShapeDoc*     backDoc;
     MgCmdManager*   _cmds;
     GcBaseView*     curview;
     long            refcount;

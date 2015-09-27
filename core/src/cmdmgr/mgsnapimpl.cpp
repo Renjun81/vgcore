@@ -744,6 +744,16 @@ Point2d MgCmdManagerImpl::snapPoint(const MgMotion* sender, const Point2d& orgpt
         int decimal = sender->view->getOptionInt("snapRoundCell", 1);
         float mm = sender->displayMmToModel(1);
         
+        // added by kyg on 2015-09
+        // enable snap to grid point
+        if ( sender->view->getOptionBool("snapBgGrid", false) )
+        {
+            float gridSize = sender->view->getOptionFloat("gridSize", 10.f);
+            pnt.x = mgRound(pnt.x/gridSize)*gridSize;
+            pnt.y = mgRound(pnt.y/gridSize)*gridSize;
+        }
+        //////////////////////////////////////////////////
+        
         pnt.x = mgbase::roundReal(pnt.x / mm, decimal) * mm;
         pnt.y = mgbase::roundReal(pnt.y / mm, decimal) * mm;
     }

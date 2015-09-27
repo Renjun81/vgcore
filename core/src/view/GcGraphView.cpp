@@ -97,35 +97,66 @@ GcGraphView::~GcGraphView()
 
 void GcGraphView::draw(GiGraphics& gs)
 {
+    const char* bgImage = cmdView()->getOptionString("backgroundImage");
+    if ( strlen(bgImage) > 0 )
+    {
+        float width = cmdView()->getOptionFloat("backgroundWidth", 0.f);
+        float height = cmdView()->getOptionFloat("backgroundHeight", 0.f);
+        if ( width > 0 && height > 0 )
+        {
+            Box2d bgRect(Point2d::kOrigin(), width, height);
+            bgRect *= gs.xf().displayToModel();
+            bgRect *= gs.xf().getViewScale();
+            gs.drawImage(bgImage, Point2d::kOrigin(), bgRect.width(), bgRect.height());
+        }
+    }
+    
     int gridType = cmdView()->getOptionInt("showGrid", 0);
     if (gridType < 1 || gridType > 2 || gs.xf().getViewScale() < 0.05f)
         return;
     
-    Box2d rect(gs.xf().getWndRectW());
-    GiContext ctx(0, GiColor(127, 127, 127, gridType == 2 ? 48 : 20));
+    int nNormalAlpha = 20;
+    int nStrongAlpha = 48;
+    int nStrongGap = 1;
+    float gridSize = cmdView()->getOptionFloat("gridSize", 10.f);
     
-    if (gridType == 1) {
-        GiContext ctx5(0, GiColor(127, 127, 127, 48));
-        float x = mgbase::roundReal(rect.xmin, -1) - 10;
-        float y = mgbase::roundReal(rect.ymin, -1) - 10;
-        int i = mgRound(x) / 10;
+    Box2d rect(gs.xf().getWndRectW());
+    
+    GiContext ctx(0, GiColor(127, 127, 127, gridType == 2 ? nStrongAlpha : nNormalAlpha));
+    
+    //float x = mgbase::roundReal(rect.xmin, -1) - 10;
+    //float y = mgbase::roundReal(rect.ymin, -1) - 10;
+    float x = gridSize * mgRound(rect.xmin / gridSize);
+    float y = gridSize * mgRound(rect.ymin / gridSize);
+    
+    if (gridType == 1)
+    {
+        GiContext ctx5(0, GiColor(127, 127, 127, nStrongAlpha));
         
-        for (; x < rect.xmax + 10; x += 10) {
-            gs.drawLine(i++ % 5 ? &ctx : &ctx5, Point2d(x, rect.ymin), Point2d(x, rect.ymax), false);
+        int i = (int)(x/gridSize); // mgRound(x) / 10;
+        for (; x < rect.xmax + gridSize; x += gridSize) {
+            gs.drawLine(i++ % nStrongGap ? &ctx : &ctx5, Point2d(x, rect.ymin), Point2d(x, rect.ymax), false);
         }
-        i = mgRound(y) / 10;
-        for (; y < rect.ymax + 10; y += 10) {
-            gs.drawLine(i++ % 5 ? &ctx : &ctx5, Point2d(rect.xmin, y), Point2d(rect.xmax, y), false);
+        
+        i = (int)(y/gridSize); //mgRound(y) / 10;
+        for (; y < rect.ymax + gridSize; y += gridSize) {
+            gs.drawLine(i++ % nStrongGap ? &ctx : &ctx5, Point2d(rect.xmin, y), Point2d(rect.xmax, y), false);
         }
     }
-    else if (gridType == 2) {
-        for (float x = rect.xmin - 10; x < rect.xmax + 10; x += 10) {
-            for (float y = rect.ymin - 10; y < rect.ymax + 10; y += 10) {
+    else if (gridType == 2)
+    {
+        for (; x < rect.xmax + gridSize; x += gridSize) {
+            for (; y < rect.ymax + gridSize; y += gridSize) {
                 gs.drawLine(&ctx, Point2d(x, y - 0.5f), Point2d(x, y + 0.5f), false);
                 gs.drawLine(&ctx, Point2d(x - 0.5f, y), Point2d(x + 0.5f, y), false);
             }
         }
     }
+    
+    //// draw axis and original point
+    //gs.drawLine(Pont2d(0, rect.ymin), Point2d(0, rect.ymax));
+    //gs.drawLine(Point2d(rect.xmin, 0), Point2d(rect.xmax, 0));
+    //gs.drawCircle(&ctx, Point2d::kOrigin(), 1);
     
     GcBaseView::draw(gs);
 }

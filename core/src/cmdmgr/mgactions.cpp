@@ -67,6 +67,12 @@ bool MgCmdManagerImpl::showInSelect(const MgMotion* sender, int selState, const 
             break;
             
         case kMgSelVertexes:
+            // added by kyg on 2015-09
+            // add delete action
+            if (!locked && shape && !shape->shapec()->getFlag(kMgNoDel)) {
+                actions[n++] = kMgActionDelete;
+            }
+
             if ((issplines || isLines) && shape && !shape->shapec()->isLocked()) {
                 if (shape->shapec()->getFlag(kMgCanAddVertex)) {
                     //actions[n++] = closed ? kMgActionOpened : kMgActionClosed;

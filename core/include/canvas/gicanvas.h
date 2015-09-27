@@ -163,6 +163,9 @@ public:
     //! Clear the cached bitmap for re-drawing on desktop PC.
     virtual void clearCachedBitmap(bool clearAll = false) {}
 #endif
+    
+    //! added by kyg on 2015-09
+    virtual float calcTextWidth(const char* text, float h) { return 0.f; }
 
     //! Ready to draw a shape.
     virtual bool beginShape(int type, int sid, int version,

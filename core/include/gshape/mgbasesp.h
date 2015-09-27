@@ -5,6 +5,9 @@
 #ifndef TOUCHVG_MGBASESHAPE_H_
 #define TOUCHVG_MGBASESHAPE_H_
 
+#include <map>
+#include <string>
+
 #include "mgobject.h"
 #include "mgmat.h"
 #include "mgpath.h"
@@ -65,6 +68,33 @@ struct MgHitResult {
     void disnableSnapEdge() { mask &= ~(1<<kMgHandleOutside); }
 };
 
+
+class OptionMap
+{
+public:
+    
+    typedef std::map<std::string, std::string> STRING_MAP;
+    STRING_MAP         options;
+    
+public:
+    
+    bool    getOptionBool(const char* name, bool defValue);
+    void    setOptionBool(const char* name, bool value);
+    
+    int     getOptionInt(const char* name, int defValue);
+    void    setOptionInt(const char* name, int value);
+    
+    float   getOptionFloat(const char* name, float defValue);
+    void    setOptionFloat(const char* name, float value);
+    
+    const char* getOptionString(const char* name);
+    void    setOptionString(const char* name, const char* text);
+    
+    void    save(const char* name, MgStorage *s);
+    void    load(const char* name, MgStorage *s);
+};
+
+
 //! 矢量图形基类
 /*! \ingroup CORE_SHAPE
     \see MgShapeType, MgShape
@@ -84,8 +114,8 @@ public:
         return tol;
     }
     
-	//! 得到句柄，用于跨库转换
-	long toHandle() const { long h; *(const MgBaseShape**)&h = this; return h; }
+    static MgBaseShape* fromHandle(long h) { MgBaseShape* p; *(long*)&p = h; return p; }    //!< 转为对象
+	long toHandle() const { long h; *(const MgBaseShape**)&h = this; return h; }    //!< 得到句柄，用于跨库转换
 
     //! 复制出一个新图形对象
     MgBaseShape* cloneShape() const { return (MgBaseShape*)clone(); }
@@ -234,6 +264,9 @@ public:
     static float linesHit(int n, const Point2d* points, bool closed,
                           const Point2d& pt, float tol, MgHitResult& res);
     
+    OptionMap& extras() { return _options; }
+    OptionMap* extrasc() const { return (OptionMap * const)&_options; }
+    
 protected:
     Box2d   _extent;
     union {
@@ -258,6 +291,8 @@ protected:
     };
     long _changeCount;
 
+    OptionMap _options;
+    
 protected:
     bool _isClosed() const { return getFlag(kMgClosed); }
     void _copy(const MgBaseShape& src);

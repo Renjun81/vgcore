@@ -70,8 +70,9 @@ private:
     const MgShape* hitTestAll(const MgMotion* sender, MgHitResult& res);
     const MgShape* getSelectedShape(const MgMotion* sender);
     bool canSelect(const MgShape* shape, const MgMotion* sender);
-    int hitTestHandles(const MgShape* shape, const Point2d& pointM,
-                         const MgMotion* sender, float tolmm = 10.f);
+    // modified by kyg on 2015-09
+    // removed tolmm parameter and get it from view option
+    int hitTestHandles(const MgShape* shape, const Point2d& pointM, const MgMotion* sender);
     bool isIntersectMode(const MgMotion* sender);
     int getLockSelShape(const MgMotion* sender, int defValue) const;
     int getLockSelHandle(const MgMotion* sender, int defValue) const;

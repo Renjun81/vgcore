@@ -27,8 +27,10 @@ public:
     volatile long   startPauseTick;
 #endif
     GiPlaying*      drawing;
-    MgShapeDoc*     backDoc;
-    GiPlayShapes    play;
+    GiPlaying*      playing;
+    // modified by kyg on 2015-09 comment out needless variable
+    //MgShapeDoc*     backDoc;
+    //GiPlayShapes    play;
 private:
     MgRecordShapes* _recorder[2];
     std::vector<GiPlaying*> playings;

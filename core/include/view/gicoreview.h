@@ -116,6 +116,23 @@ public:
     void setOptionFloat(const char* name, float value);             //!< 设置或清除浮点型选项值
     void setOptionString(const char* name, const char* value);      //!< 设置或清除文本选项值
     
+    
+    //! added by kyg on 2015-09
+    bool zoomToModelCenter(float x, float y, float w, float h, float margin = 2.f);
+    bool zoomScale(float viewScale, float xc = -1.f, float yc = -1.f, bool adjust=true);
+
+    float getOrgOffsetAndZoom(GiView* view, float& xorg, float&yorg);
+    
+    void setBackgroundImage(GiView *view, const char* bgImage, float width, float height);
+    
+    void setViewLimits(GiView* view, float width, float height);
+    void setViewLimits(GiView* view, float xorg, float yorg, float width, float height);
+    
+    void  setShapeInfo(const char*key, const char* value);
+    const char* getShapeInfo(const char*key);
+    //////////////////////////////////////////////////
+
+    
 // MgCoreView
 #ifndef SWIG
 public:

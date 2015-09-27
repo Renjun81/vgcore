@@ -41,8 +41,8 @@ bool GiCoreView::startRecord(const char* path, long doc, bool forUndo,
 void GiCoreView::stopRecord(bool forUndo)
 {
     impl->setRecorder(forUndo, NULL);
-    if (!forUndo && impl->play.playing) {
-        impl->play.playing->clear();
+    if (!forUndo && impl->playing) {
+        impl->playing->clear();
     }
 }
 

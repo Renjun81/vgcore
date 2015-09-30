@@ -19,10 +19,8 @@ void GcBaseView::onSize(int dpi, int w, int h)
     xform()->setWndSize(w, h);
 }
 
-bool GcBaseView::onGesture(const MgMotion& )
+bool GcBaseView::onGesture(const MgMotion& motion)
 {
-    return false;
-    /*
     if (motion.gestureType != kGiGesturePan || !_zoomEnabled){
         return false;
     }
@@ -41,8 +39,9 @@ bool GcBaseView::onGesture(const MgMotion& )
         cmdView()->regenAll(false);
     }
     
-    return true;*/
+    return true;
 }
+
 
 bool GcBaseView::twoFingersMove(const MgMotion& motion)
 {
@@ -75,6 +74,7 @@ bool GcBaseView::twoFingersMove(const MgMotion& motion)
     
     return true;
 }
+
 
 void GcBaseView::draw(GiGraphics&)
 {

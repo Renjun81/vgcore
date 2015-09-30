@@ -253,7 +253,7 @@ bool MgCmdSelect::draw(const MgMotion* sender, GiGraphics* gs)
         for (it = shapes.begin(); it != shapes.end(); ++it) {
             (*it)->draw(m_showSel ? 2 : 0, *gs, NULL, -1);          // 原样显示
         }
-    }
+    }   // draw shape as highlighted after drag or click
     else if (m_clones.empty() && (flags & kMgSelDrawBlueShape)) {   // 蓝色显示选中的图形
         float w = 0.5f * gs->xf().getWorldToDisplayY();
         GiContext ctx(-w, GiColor(0, 0, 255, 48));
@@ -354,6 +354,7 @@ bool MgCmdSelect::draw(const MgMotion* sender, GiGraphics* gs)
                 case kMgHandleQuadrant: imageType = kGiHandleQuadrant; break;
                 default: imageType = kGiHandleVertex; break;
             }
+            // draw selected shape handle
             if (!sender->dragging())
                 gs->drawHandle(pnt, imageType);
         }
@@ -550,7 +551,6 @@ bool MgCmdSelect::click(const MgMotion* sender)
                 && !shape->shapec()->isKindOf(kMgShapeSplines))) {
             m_handleIndex = hitTestHandles(shape, sender->pointM, sender);
         }
-        LOGD("click: id=%d, segment=%d", m_id, m_hit.segment);
     }
     if (m_canRotateHandle
         && !isEditMode(sender->view)
@@ -564,6 +564,7 @@ bool MgCmdSelect::click(const MgMotion* sender)
     if (shape && m_selIds.size() == 1
         && sender->view->shapeClicked(shape, sender->point.x, sender->point.y))
     {
+        LOGD("shape click: id=%d, segment=%d", m_id, m_hit.segment);
         return true;
     }
     if (!sender->pressDrag && (isEditMode(sender->view) || m_handleIndex == 0)) {
@@ -696,9 +697,13 @@ bool MgCmdSelect::touchBegan(const MgMotion* sender)
         m_ptStart = shape->getHandlePoint(tmpindex - 1);
     }
     
-    sender->view->redraw();
-    
-    return true;
+    if ( shape )
+    {
+        sender->view->redraw();
+        return true;
+    }
+    else
+        return m_boxsel;
 }
 
 bool MgCmdSelect::isIntersectMode(const MgMotion*)

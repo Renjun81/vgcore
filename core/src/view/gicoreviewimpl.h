@@ -391,7 +391,8 @@ public:
             _impl->regenAppend((int)appendPending);
         }
         else if (redrawPending > 0) {
-            _impl->redraw(redrawPending >= 100);
+            //_impl->redraw(redrawPending >= 100);
+            _impl->regenAll(false);
         }
     }
 };

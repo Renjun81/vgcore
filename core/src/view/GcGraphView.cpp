@@ -1,4 +1,4 @@
-﻿//! \file GcGraphView.cpp
+//! \file GcGraphView.cpp
 //! \brief 实现主绘图视图类 GcGraphView
 // Copyright (c) 2004-2015, https://github.com/rhcad/vgcore, BSD License
 
@@ -115,14 +115,33 @@ void GcGraphView::draw(GiGraphics& gs)
     if (gridType < 1 || gridType > 2 || gs.xf().getViewScale() < 0.05f)
         return;
     
-    int nNormalAlpha = 20;
-    int nStrongAlpha = 48;
+    
     int nStrongGap = 1;
     float gridSize = cmdView()->getOptionFloat("gridSize", 10.f);
     
     Box2d rect(gs.xf().getWndRectW());
     
-    GiContext ctx(0, GiColor(127, 127, 127, gridType == 2 ? nStrongAlpha : nNormalAlpha));
+    int nColor = cmdView()->getOptionInt("gridColor", 0);
+    
+    GiColor colorNormal;
+    GiColor colorLight;
+    if ( nColor == 0 )
+    {
+        colorNormal.set(127, 127, 127, 48);
+        colorLight.set(127, 127, 127, 24);
+    }
+    else
+    {
+        if ( (nColor >> 24) > 0 )
+            colorNormal.setARGB(nColor);
+        else
+        {
+            colorNormal.setARGB(nColor);
+            colorNormal.a = 255;
+        }
+        colorLight = colorNormal;
+        colorLight.a /= 2;
+    }
     
     //float x = mgbase::roundReal(rect.xmin, -1) - 10;
     //float y = mgbase::roundReal(rect.ymin, -1) - 10;
@@ -131,7 +150,8 @@ void GcGraphView::draw(GiGraphics& gs)
     
     if (gridType == 1)
     {
-        GiContext ctx5(0, GiColor(127, 127, 127, nStrongAlpha));
+        GiContext ctx(0, colorLight);
+        GiContext ctx5(0, colorNormal);
         
         int i = (int)(x/gridSize); // mgRound(x) / 10;
         for (; x < rect.xmax + gridSize; x += gridSize) {
@@ -145,6 +165,7 @@ void GcGraphView::draw(GiGraphics& gs)
     }
     else if (gridType == 2)
     {
+        GiContext ctx(0, colorNormal);
         for (; x < rect.xmax + gridSize; x += gridSize) {
             for (; y < rect.ymax + gridSize; y += gridSize) {
                 gs.drawLine(&ctx, Point2d(x, y - 0.5f), Point2d(x, y + 0.5f), false);

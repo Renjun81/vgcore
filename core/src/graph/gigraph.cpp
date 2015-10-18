@@ -1085,13 +1085,16 @@ static const struct {
 } _arrayHeads[] = {
     { true, 1.87f,  "M1.87 0L3 1.2 0 0 3 -1.2Z" },
     { false, 0,     "M3 1.2L0 0 3 -1.2" },
-    { false, 0,     "M0 1.5L0 -1.5" },
-    { false, 0,     "M1.5 -1.5L-1.5 1.5" },
-    //{ true, 0.8f,   "M0.8 0A0.8 0.8 0 0 0 -0.8 0A0.8 0.8 0 0 0 0.8 0Z" },
+    //{ false, 0,     "M0 1.5L0 -1.5" },
+    //{ false, 0,     "M1.5 -1.5L-1.5 1.5" },
+    //{ true, 0.8f,  "M0.8 0A0.8 0.8 0 0 0 -0.8 0A0.8 0.8 0 0 0 0.8 0Z" },
+    //{ false, 0.8f,   "M0.8 0A0.8 0.8 0 0 0 -0.8 0A0.8 0.8 0 0 0 0.8 0Z" },
     // modified by kyg on 2015-09
-    // make arrow slight larger
-    { true, 0.6f,   "M1.2 0A1.2 1.2 0 0 0 -1.2 0A1.2 1.2 0 0 0 1.2 0Z" },
-    { false, 0.8f,  "M0.8 0A0.8 0.8 0 0 0 -0.8 0A0.8 0.8 0 0 0 0.8 0Z" },
+    // make circle head slight larger (normalize)
+    { false, 0,     "M0 1.2L0 -1.2" },
+    { false, 0,     "M1.2 -1.2L-1.2 1.2" },
+    { true, 1.0f,  "M1.2 0A1.2 1.2 0 0 0 -1.2 0A1.2 1.2 0 0 0 1.2 0Z" },
+    { false, 1.0f,   "M1.2 0A1.2 1.2 0 0 0 -1.2 0A1.2 1.2 0 0 0 1.2 0Z" },
 };
 
 void GiGraphics::drawArrayHead(const GiContext& ctx, MgPath& path, int type, float px, float scale)
@@ -1120,6 +1123,9 @@ bool GiGraphics::drawPathWithArrayHead(const GiContext& ctx, MgPath& path, int s
 {
     float px = calcPenWidth(ctx.getLineWidth(), ctx.isAutoScale());
     float scale = 0.5f * xf().getWorldToDisplayX() * (1 + mgMax(0.f, (px - 4.f) / 5));
+    // modified by kyg on 2015-10-18
+    // make scale factor two times as head size about 2.4 * 2.4
+    scale *= 2;
     
     if (startArray > 0 && startArray <= GiContext::kArrowOpenedCircle) {
         drawArrayHead(ctx, path, startArray, px, scale);

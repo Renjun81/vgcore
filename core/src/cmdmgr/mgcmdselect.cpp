@@ -1,4 +1,4 @@
-﻿// mgcmdselect.cpp: 实现选择命令类
+// mgcmdselect.cpp: 实现选择命令类
 // Copyright (c) 2004-2015, https://github.com/rhcad/vgcore, BSD License
 
 #include "mgcmdselect.h"
@@ -155,7 +155,7 @@ bool MgCmdSelect::initializeWithSelection(const MgMotion* sender, MgStorage* s, 
     }
     
     m_canRotateHandle = !!sender->view->getOptionBool("canRotateHandle", true);
-    // modified by kyg on 2015-09
+    // modified by kyg on 2015-09  only for sketch app
     // disable switching edit mode, make always editable.
     //m_editMode = (m_editMode || m_handleIndex > 0) && !m_rotateHandle;
     m_editMode = true;
@@ -1702,6 +1702,11 @@ bool MgCmdSelect::twoFingersMove(const MgMotion* sender)
         for (size_t i = 0; i < m_clones.size(); i++) {
             MgBaseShape* shape = m_clones[i]->shape();
             const MgShape* basesp = getShape(m_selIds[i], sender);
+            
+            // modified by kyg on 2015-10-18  only for sketch app
+            // disable two finger action
+            continue;
+            /////////////////////////////////////////////////////
             
             if (!canTransform(basesp, sender))
                 continue;
